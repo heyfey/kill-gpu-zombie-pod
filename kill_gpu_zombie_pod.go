@@ -369,7 +369,7 @@ func (k *GpuZombieKiller) detectAndKill() {
 // scratchGpu scratchs all GPU states and returns [uuid]gpu_utilization map
 func (k *GpuZombieKiller) scratchGpu() map[string]float64 {
 	k.lock.RLock()
-	k.lock.RUnlock()
+	defer k.lock.RUnlock()
 
 	uuidUtilMap := make(map[string]float64)
 

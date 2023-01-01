@@ -1,0 +1,78 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kill-gpu-zombie-pod
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  verbs:
+  - create
+- apiGroups: 
+  - ""
+  resources: 
+  - nodes
+  verbs: 
+  - get
+  - list
+  - watch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kill-gpu-zombie-pod
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kill-gpu-zombie-pod
+  namespace: voda-scheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kill-gpu-zombie-pod
+subjects:
+- kind: ServiceAccount
+  name: kill-gpu-zombie-pod
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kill-gpu-zombie-pod
+  labels:
+    app: kill-gpu-zombie-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kill-gpu-zombie-pod
+  template:
+    metadata:
+      labels:
+        app: kill-gpu-zombie-pod
+    spec:
+      serviceAccountName: kill-gpu-zombie-pod
+      containers:
+      - name: kill-gpu-zombie-pod
+        image: heyfey/kill-gpu-zombie-pod:latest
+        command: ["/bin/bash","-c"]
+        args:
+        - ./kill_gpu_zombie_pod
+          -namespace=default
+          -idle_timeout_seconds=90
+          -check_period_seconds=10
+      tolerations:
+      - key: "vodascheduler/hostname"
+        operator: "Exists"
+        effect: "NoExecute"

@@ -75,7 +75,7 @@ type GpuZombieKiller struct {
 	hostSet mapset.Set[string]
 	// uuidStateMap and podUuidMap stores relation between GPUs(by uuid) and pods.
 	// Note that we assume one pod's GPUs assigned would not be changed without
-	// deleting and re-adding the node.
+	// deleting and re-adding the pod.
 	uuidStateMap map[string]*uuidState
 	podUuidMap   map[string][]string
 	// Lock to protect above data structures
